@@ -1,12 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp(name = "CrabBot Demo 2023-2024")
-public class CrabBotDemo extends LinearOpMode {
+@TeleOp
+@Disabled
+public class CrabBot extends LinearOpMode {
 
     @Override
     public void runOpMode() {
