@@ -39,6 +39,14 @@ public class WaverlyGamepad {
     public boolean leftBumperPressed = false;
     private boolean leftBumperWasPressed = false;
 
+    public boolean rightTrigger = false;
+    public boolean rightTriggerPressed = false;
+    private boolean  rightTriggerWasPressed = false;
+
+    public boolean leftTrigger = false;
+    public boolean leftTriggerPressed = false;
+    private boolean  leftTriggerWasPressed = false;
+
     public WaverlyGamepad(Gamepad gamepad) {
         gp = gamepad;
     }
@@ -72,9 +80,13 @@ public class WaverlyGamepad {
         rightBumperPressed = rightBumper && !rightBumperWasPressed;
         rightBumperWasPressed = rightBumper;
 
+        leftTrigger = gp.left_trigger != 0;
+        leftTriggerPressed = leftTrigger && !leftTriggerWasPressed;
+        leftTriggerWasPressed = leftTrigger;
 
-
-
+        rightTrigger = gp.right_trigger != 0;
+        rightTriggerPressed = rightTrigger && !rightTriggerWasPressed;
+        rightTriggerWasPressed = rightTrigger;
     }
 
 }
