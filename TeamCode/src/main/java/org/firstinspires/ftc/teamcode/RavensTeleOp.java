@@ -2,9 +2,11 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.thewaverlyschool.WaverlyGamepad;
 
@@ -18,58 +20,66 @@ public class RavensTeleOp extends OpMode {
     Boolean flipRx = false;
     boolean slomo = false;
 
-    double hangPower = 0.5;
-    double clawServoClosedPos = 0.0;
-    double clawServoOpenPos = 0.5;
+    int clawUpPos = 3450;
+
+    double clawServoClosedPos = 0.4;
+    double clawServoOpenPos = 0.2;
+
+    double hangPower = 1;
 
     // Hardware
     WaverlyGamepad gp1;
     WaverlyGamepad gp2;
 
     // Wheels
-    DcMotor fl;
-    DcMotor bl;
-    DcMotor fr;
-    DcMotor br;
+    DcMotorEx fl;
+    DcMotorEx bl;
+    DcMotorEx fr;
+    DcMotorEx br;
 
     // Claw arm
-    CRServo clawExtendServo;
+    DcMotor clawE;
     Servo clawL;
     Servo clawR;
 
     // Hang arm
     DcMotor hangMotor;
 
+    // Sensors
+    TouchSensor frontTouch;
+
     public void init() {
         // Initialize hardware
         gp1 = new WaverlyGamepad(gamepad1);
         gp2 = new WaverlyGamepad(gamepad2);
 
-        fl = hardwareMap.dcMotor.get("frontL");
-        bl = hardwareMap.dcMotor.get("backL");
-        fr = hardwareMap.dcMotor.get("frontR");
-        br = hardwareMap.dcMotor.get("backR");
+        fl = (DcMotorEx) hardwareMap.dcMotor.get("frontL");
+        bl = (DcMotorEx) hardwareMap.dcMotor.get("backL");
+        fr = (DcMotorEx) hardwareMap.dcMotor.get("frontR");
+        br = (DcMotorEx) hardwareMap.dcMotor.get("backR");
 
-        clawExtendServo = hardwareMap.crservo.get("armExtend");
+        clawE = hardwareMap.dcMotor.get("clawE");
         clawL = hardwareMap.servo.get("clawL");
         clawR = hardwareMap.servo.get("clawR");
 
         hangMotor = hardwareMap.dcMotor.get("hang");
 
-        fl.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        fl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        bl.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        bl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        fr.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        fr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        br.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        br.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        frontTouch = hardwareMap.touchSensor.get("frontTouch");
+
+
+        setDriveMotorMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        setDriveMotorMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+
+        clawE.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        clawE.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        clawE.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         clawL.setDirection(Servo.Direction.REVERSE);
         clawL.setPosition(clawServoClosedPos);
         clawR.setPosition(clawServoClosedPos);
 
-        telemetry.addData("Greeting", "Hello Waverly Robotics students!!!! ヾ(≧▽ ≦*)o ❤️ >.<");
+        telemetry.addData("Greeting", "Hello Waverly Robotics students..pleasesavemeohgodohgodthecodingmonsterisgoingtoeatme");
         telemetry.update();
     }
 
@@ -79,8 +89,7 @@ public class RavensTeleOp extends OpMode {
         adjustSettings(true);
 
         // Changes to closed pos take effect during init - check if this is allowed
-        clawL.setPosition(clawServoClosedPos);
-        clawR.setPosition(clawServoClosedPos);
+        clawL.setPosition(clawServoClosedPos);        clawR.setPosition(clawServoClosedPos);
     }
 
     @Override
@@ -121,16 +130,17 @@ public class RavensTeleOp extends OpMode {
         // Claw arm
         //-------------------------------
         double clawExtendStick = gamepad2.left_stick_y;
-        if (clawExtendStick > 0) {
-            clawExtendServo.setPower(1);
-        } else if (clawExtendStick < 0) {
-            clawExtendServo.setPower(-1);
+        int clawEPos = clawE.getCurrentPosition();
+        if (clawExtendStick > 0 && (clawEPos < clawUpPos || gp2.a)) {
+            clawE.setPower(0.7);
+        } else if (clawExtendStick < 0 && (clawEPos > 0 || gp2.a) ) {
+            clawE.setPower(-0.7);
         } else {
-            clawExtendServo.setPower(0);
+            clawE.setPower(0);
         }
 
         if (gp2.rightBumperPressed) {
-            clawL.setPosition(clawServoOpenPos);
+           clawL.setPosition(clawServoOpenPos);
             clawR.setPosition(clawServoOpenPos);
         } else if (gp2.leftBumperPressed) {
             clawL.setPosition(clawServoClosedPos);
@@ -157,6 +167,7 @@ public class RavensTeleOp extends OpMode {
         telemetry.addData("leftY", gamepad1.left_stick_y);
         telemetry.addData("leftX", gamepad1.left_stick_x);
         telemetry.addData("rightX", gamepad1.right_stick_x);
+        telemetry.addData("frontTouch", frontTouch.isPressed());
         telemetry.addLine("=============POWER================");
         telemetry.addData("frontLeftPower", frontLeftPower);
         telemetry.addData("frontRightPower", frontRightPower);
@@ -165,9 +176,10 @@ public class RavensTeleOp extends OpMode {
         telemetry.addData("hangPower", hangPower);
         telemetry.addLine("==============POSITIONS================");
         telemetry.addData("flPos", fl.getCurrentPosition());
-        telemetry.addData("blPos", fl.getCurrentPosition());
-        telemetry.addData("frPos", fl.getCurrentPosition());
-        telemetry.addData("brPos", fl.getCurrentPosition());
+        telemetry.addData("blPos", bl.getCurrentPosition());
+        telemetry.addData("frPos", fr.getCurrentPosition());
+        telemetry.addData("brPos", br.getCurrentPosition());
+        telemetry.addData("clawE", clawE.getCurrentPosition());
         telemetry.addData("clawLPos", clawL.getPosition());
         telemetry.addData("clawRPos", clawR.getPosition());
         telemetry.update();
@@ -191,14 +203,14 @@ public class RavensTeleOp extends OpMode {
 
         // Claw servo position
         if (gp2.dpadRightPressed) {
-            clawServoOpenPos = Math.min(1, clawServoOpenPos + 0.1);
+            clawServoOpenPos = Math.min(1, clawServoOpenPos + 0.05);
         } else if (gp2.dpadLeftPressed) {
-            clawServoOpenPos = Math.max(-1, clawServoOpenPos - 0.1);
+            clawServoOpenPos = Math.max(-1, clawServoOpenPos - 0.05 );
         }
         if (gp2.dpadUpPressed) {
-            clawServoClosedPos = Math.min(1, clawServoClosedPos + 0.1);
+            clawServoClosedPos = Math.min(1, clawServoClosedPos + 0.05);
         } else if (gp2.dpadDownPressed) {
-            clawServoClosedPos = Math.max(-1, clawServoClosedPos - 0.1);
+            clawServoClosedPos = Math.max(-1, clawServoClosedPos - 0.05);
         }
 
         // Hang power
@@ -216,5 +228,10 @@ public class RavensTeleOp extends OpMode {
         telemetry.addData("Claw servo open (dpad l/r)", clawServoOpenPos);
         telemetry.addData("Hang Power (trigger l/r)", hangPower);
     }
-
+private void setDriveMotorMode(DcMotor.RunMode mode){
+        fl.setMode(mode);
+        fr.setMode(mode);
+        bl.setMode(mode);
+        br.setMode(mode);
+}
 }
