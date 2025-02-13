@@ -132,9 +132,9 @@ public class RavensTeleOp extends OpMode {
         double clawExtendStick = gamepad2.left_stick_y;
         int clawEPos = clawE.getCurrentPosition();
         if (clawExtendStick > 0 && (clawEPos < clawUpPos || gp2.a)) {
-            clawE.setPower(0.7);
+            clawE.setPower(1);
         } else if (clawExtendStick < 0 && (clawEPos > 0 || gp2.a) ) {
-            clawE.setPower(-0.7);
+            clawE.setPower(-1);
         } else {
             clawE.setPower(0);
         }
@@ -190,28 +190,29 @@ public class RavensTeleOp extends OpMode {
         gp2.readButtons();
     }
 
-    private void adjustSettings(boolean allowFlip) {
-        // Drive flip
-        if (allowFlip) {
+    private void adjustSettings(boolean isInInitMode) {
+        // Some settings we only let us change before we start driving
+        if (isInInitMode) {
             if (gp1.dpadLeftPressed) flipRx = !flipRx;
             if (gp1.dpadUpPressed) flipY = !flipY;
             if (gp1.dpadRightPressed) flipX = !flipX;
+
+            // Claw servo position
+            if (gp2.dpadRightPressed) {
+                clawServoOpenPos = Math.min(1, clawServoOpenPos + 0.05);
+            } else if (gp2.dpadLeftPressed) {
+                clawServoOpenPos = Math.max(-1, clawServoOpenPos - 0.05 );
+            }
+            if (gp2.dpadUpPressed) {
+                clawServoClosedPos = Math.min(1, clawServoClosedPos + 0.05);
+            } else if (gp2.dpadDownPressed) {
+                clawServoClosedPos = Math.max(-1, clawServoClosedPos - 0.05);
+            }
+
         }
 
         // Drive power
         if (gp1.dpadDownPressed) slomo = !slomo;
-
-        // Claw servo position
-        if (gp2.dpadRightPressed) {
-            clawServoOpenPos = Math.min(1, clawServoOpenPos + 0.05);
-        } else if (gp2.dpadLeftPressed) {
-            clawServoOpenPos = Math.max(-1, clawServoOpenPos - 0.05 );
-        }
-        if (gp2.dpadUpPressed) {
-            clawServoClosedPos = Math.min(1, clawServoClosedPos + 0.05);
-        } else if (gp2.dpadDownPressed) {
-            clawServoClosedPos = Math.max(-1, clawServoClosedPos - 0.05);
-        }
 
         // Hang power
         if (gp2.rightTriggerPressed) {
